@@ -74,12 +74,17 @@ class SupabaseService {
 
   /// 회원가입 (이메일+비밀번호). 이름·국적은 user_metadata로 저장 → 트리거가 profiles 생성.
   Future<String?> signUp(String email, String password,
-      {String? name, String? nationality}) async {
+      {String? name, String? nationality, String? workplace, String? tenure}) async {
     try {
       await _auth.signUp(
         email: email.trim(),
         password: password,
-        data: {'name': name, 'nationality': nationality},
+        data: {
+          'name': name,
+          'nationality': nationality,
+          'workplace': workplace,
+          'tenure': tenure,
+        },
       );
       return null; // 성공
     } on AuthException catch (e) {

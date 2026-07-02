@@ -36,6 +36,7 @@ class AppState extends ChangeNotifier {
   String? name;
   String? nationality;
   String? workplace; // 내 사업장 이름 (없으면 null)
+  String? tenure; // 근속 (예: "1년 2개월")
   String? inviteCode; // 내 초대 코드 (profiles.invite_code)
   int points = 0;
   int attendStreak = 0;
@@ -140,6 +141,7 @@ class AppState extends ChangeNotifier {
       name = p['name'] as String?;
       nationality = p['nationality'] as String?;
       workplace = p['workplace'] as String?;
+      tenure = p['tenure'] as String?;
       inviteCode = p['invite_code'] as String?;
       points = (p['points'] ?? 0) as int;
       attendStreak = (p['attend_streak'] ?? 0) as int;
