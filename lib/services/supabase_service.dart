@@ -85,7 +85,7 @@ class SupabaseService {
     } on AuthException catch (e) {
       return e.message;
     } catch (e) {
-      return '가입 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.';
+      return 'err_signup'; // auth.dart에서 현재 언어로 번역
     }
   }
 
@@ -97,7 +97,7 @@ class SupabaseService {
     } on AuthException catch (e) {
       return e.message;
     } catch (e) {
-      return '로그인 중 오류가 발생했어요.';
+      return 'err_signin'; // auth.dart에서 현재 언어로 번역
     }
   }
 
@@ -137,6 +137,41 @@ class SupabaseService {
     } catch (_) {
       return {'ok': false, 'reason': 'err'};
     }
+  }
+
+  // ---------------- 번역 캐시 (post_translations) ----------------
+  /// 캐시된 번역 조회. 없으면 null.
+  Future<Map<String, String>?> fetchTranslation(String postId, String lang) async {
+    try {
+      final row = await _c
+          .from('post_translations')
+          .select()
+          .eq('post_id', postId)
+          .eq('lang', lang)
+          .maybeSingle();
+      if (row == null) return null;
+      return {
+        'title': (row['title'] ?? '') as String,
+        'body': (row['body'] ?? '') as String,
+        'ai_answer': (row['ai_answer'] ?? '') as String,
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// AI 번역 결과를 캐시에 저장(같은 글·언어 재호출 방지). 실패는 무시.
+  Future<void> saveTranslation(String postId, String lang,
+      {required String title, required String body, String? aiAnswer}) async {
+    try {
+      await _c.from('post_translations').upsert({
+        'post_id': postId,
+        'lang': lang,
+        'title': title,
+        'body': body,
+        'ai_answer': aiAnswer ?? '',
+      });
+    } catch (_) {}
   }
 
   // ---------------- 사업장 ----------------
