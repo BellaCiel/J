@@ -201,10 +201,45 @@ insert into public.workplaces (name, job, industry, region, pay, reports, worker
 ('(주)녹원목장(농업회사법인)','가축(말) 사육 종사원','축산','제주시','시급 15,000원',0,5,null,4.7,29),
 ('제주농장영농조합','식품제조 단순 종사자','제조','제주시','월급 2,156,880원',0,8,null,4.2,30);
 
+-- 검증용 테스트 데이터 정리 ('[검증]' 포함 글·댓글 제거). 글 삭제 시 댓글은 FK로 함께 삭제.
+delete from public.community_comments where body like '%[검증%' or author_label like '%[검증%';
+delete from public.community_posts where title like '%[검증%' or body like '%[검증%';
+
 -- 커뮤니티 시드 글 (author null = 운영/AI 시드). 재실행 시 중복 방지.
 delete from public.community_posts where author is null;
 insert into public.community_posts (category, title, body, ai_answer, likes, pinned) values
 ('임금체불','사장이 "다음 달에 준다"만 반복해요','2달째 월급을 안 주는데 계속 미뤄요. 지금 뭘 해야 하나요?','지금 바로 SOS 탭에서 1350 상담을 받으세요. GPS 근무기록을 캡처해두면 진정 접수 시 증거가 됩니다.',6,true),
 ('계약','근로계약서를 안 써줬어요','일 시작한 지 한 달인데 계약서가 없어요. 이래도 되나요?',null,9,false),
 ('임금체불','양식장 3개월치 밀렸다가 받은 후기','GPS 기록 제출했더니 사장이 인정했어요. 다들 꼭 매일 찍으세요! 🙏',null,47,false),
-('제주생활','성산에서 병원 갈 때 통역 되는 곳?','아파서 병원 가야 하는데 한국어가 서툴러요.',null,6,false);
+('제주생활','성산에서 병원 갈 때 통역 되는 곳?','아파서 병원 가야 하는데 한국어가 서툴러요.',null,6,false),
+('비자','E-9에서 E-7-4(숙련기능인력)로 바꾸려면?','성실근로자인데 장기체류 비자로 변경하는 조건이 궁금해요.',null,12,false),
+('제주생활','서귀포에서 방 구할 때 보증금 시세?','월세 방을 구하는데 보증금이 보통 얼마 정도인가요?',null,8,false);
+
+-- 커뮤니티 시드 댓글 (author null = 운영/AI 시드). post_id는 제목으로 매칭.
+delete from public.community_comments where author is null;
+insert into public.community_comments (post_id, author_label, body, is_ai)
+select id, '익명 · 네팔', '저도 같은 일 겪었어요. 1350에 전화하니 통역해서 바로 도와줬어요.', false from public.community_posts where title = '사장이 "다음 달에 준다"만 반복해요'
+union all
+select id, '익명 · 베트남', 'GPS 출퇴근 기록 꼭 캡처해두세요. 나중에 강력한 증거가 됩니다.', false from public.community_posts where title = '사장이 "다음 달에 준다"만 반복해요'
+union all
+select id, '✨ AI 도우미', '계약서가 없어도 근로 사실은 인정됩니다(근로기준법 제17조 위반). GPS 출퇴근 기록·급여 이체 내역·동료 진술이 증거가 돼요.', true from public.community_posts where title = '근로계약서를 안 써줬어요'
+union all
+select id, '익명 · 인도네시아', '저는 사장이 문자로 보낸 근무조건을 저장해뒀는데 그것도 증거가 된대요.', false from public.community_posts where title = '근로계약서를 안 써줬어요'
+union all
+select id, '익명 · 스리랑카', '증거가 있으면 정말 든든해요. 저도 매일 출근 기록 남기는 중이에요.', false from public.community_posts where title = '사장이 "다음 달에 준다"만 반복해요'
+union all
+select id, '익명 · 캄보디아', '축하해요! 저도 오늘부터 매일 찍을게요 🙏', false from public.community_posts where title = '양식장 3개월치 밀렸다가 받은 후기'
+union all
+select id, '✨ AI 도우미', '받은 임금은 꼭 이체 내역으로 확인해두세요. 다음에 또 밀리면 바로 GPS 기록과 함께 신고하시면 됩니다.', true from public.community_posts where title = '양식장 3개월치 밀렸다가 받은 후기'
+union all
+select id, '익명 · 베트남', '제주외국인노동자지원센터(064-712-1141)에 전화하면 병원 통역을 도와줘요.', false from public.community_posts where title = '성산에서 병원 갈 때 통역 되는 곳?'
+union all
+select id, '익명 · 네팔', '성산보건지소도 예약하면 통역 연결해준 적 있어요.', false from public.community_posts where title = '성산에서 병원 갈 때 통역 되는 곳?'
+union all
+select id, '✨ AI 도우미', 'E-9로 4년 이상 성실 근무 + 한국어능력·소득 요건을 충족하면 E-7-4 전환을 신청할 수 있어요. 사업주 추천과 근무 경력 증빙이 중요합니다.', true from public.community_posts where title = 'E-9에서 E-7-4(숙련기능인력)로 바꾸려면?'
+union all
+select id, '익명 · 인도네시아', '저도 준비 중인데, 매년 소득·근속 증빙 모아두는 게 유리하대요.', false from public.community_posts where title = 'E-9에서 E-7-4(숙련기능인력)로 바꾸려면?'
+union all
+select id, '익명 · 캄보디아', '서귀포 읍면 지역은 보증금 100~300만원, 월세 25~40만원 선이 많아요.', false from public.community_posts where title = '서귀포에서 방 구할 때 보증금 시세?'
+union all
+select id, '익명 · 베트남', '사업장 기숙사가 있으면 그것부터 확인해보세요. 보증금 부담이 훨씬 적어요.', false from public.community_posts where title = '서귀포에서 방 구할 때 보증금 시세?';
