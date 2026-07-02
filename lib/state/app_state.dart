@@ -11,6 +11,26 @@ class WorkLog {
 
 /// 앱 전역 상태 (목업의 전역 변수 이식)
 class AppState extends ChangeNotifier {
+  /// 시작 시 기기 시스템 로케일을 감지해 초기 언어를 정한다.
+  /// 해외에서 사용 시 그 나라 언어(지원 목록 내)로, 미지원이면 영어로.
+  /// 언어 선택 화면 없이 바로 앱이 뜨고, 상단바에서 언제든 바꿀 수 있다.
+  AppState() {
+    lang = _detectLang();
+  }
+
+  static String _detectLang() {
+    final locales = PlatformDispatcher.instance.locales;
+    for (final l in locales) {
+      final c = l.languageCode.toLowerCase();
+      if (langLabels.containsKey(c)) return c;
+    }
+    // 지원하지 않는 언어면 영어로 대체 (한국어가 기본 폴백은 아님).
+    if (locales.isNotEmpty && locales.first.languageCode.toLowerCase() != 'ko') {
+      return 'en';
+    }
+    return 'ko';
+  }
+
   String lang = 'ko';
   int points = 1250;
   bool attended = false;

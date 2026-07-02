@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'theme.dart';
 import 'state/app_state.dart';
 import 'services/supabase_service.dart';
-import 'screens/splash_language.dart';
 import 'screens/onboarding.dart';
 import 'screens/main_shell.dart';
 
@@ -15,8 +14,8 @@ Future<void> main() async {
   );
 }
 
-/// 온보딩 단계
-enum AppStage { splash, signup, worksite, main }
+/// 온보딩 단계 (언어 선택 화면 제거 — 시스템 로케일로 자동 시작)
+enum AppStage { signup, worksite, main }
 
 class JejuPayApp extends StatefulWidget {
   const JejuPayApp({super.key});
@@ -25,19 +24,17 @@ class JejuPayApp extends StatefulWidget {
 }
 
 class _JejuPayAppState extends State<JejuPayApp> {
-  // 기본 splash. 검증용으로 --dart-define=START=main 지정 가능.
+  // 언어는 시스템 로케일로 자동 설정되므로 회원가입부터 시작.
+  // 검증용으로 --dart-define=START=main 지정 가능.
   AppStage stage = const String.fromEnvironment('START') == 'main'
       ? AppStage.main
-      : AppStage.splash;
+      : AppStage.signup;
   void go(AppStage s) => setState(() => stage = s);
 
   @override
   Widget build(BuildContext context) {
     Widget body;
     switch (stage) {
-      case AppStage.splash:
-        body = SplashLanguageScreen(onPicked: () => go(AppStage.signup));
-        break;
       case AppStage.signup:
         body = SignupScreen(
           onNext: () => go(AppStage.worksite),
