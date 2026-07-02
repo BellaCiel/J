@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../theme.dart';
 import '../state/app_state.dart';
 import '../state/i18n.dart';
 import '../services/supabase_service.dart';
+import '../data/brand_svgs.dart';
 import '../widgets/common.dart';
-import '../widgets/citrus_mark.dart';
 
-/// 로그인 / 회원가입 화면. 로그인해야만 앱을 쓸 수 있다(건너뛰기 없음).
+/// 로그인 / 회원가입 화면. 회원가입은 2단계(계정 → 사업지 등록). 로그인해야 앱 사용 가능.
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
   @override
@@ -16,16 +17,18 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool signupMode = false;
+  int signupStep = 1; // 1=계정, 2=사업지 등록
   bool loading = false;
-  String? error; // 원문 메시지(Supabase) 또는 i18n 키
-  String? notice; // i18n 키
+  String? error; // i18n 키 또는 Supabase 원문
+  String? notice;
 
   final _email = TextEditingController();
   final _pw = TextEditingController();
   final _name = TextEditingController();
-  String? _nationality; // 고정 목록에서 선택
+  final _workplace = TextEditingController();
+  final _tenure = TextEditingController();
+  String? _nationality;
 
-  // 제주 이주노동자 주요 국적 (스크롤 선택 목록)
   static const _nationalities = [
     '네팔', '베트남', '인도네시아', '캄보디아', '스리랑카', '태국',
     '미얀마', '필리핀', '방글라데시', '몽골', '우즈베키스탄', '중국', '기타',
@@ -36,50 +39,71 @@ class _AuthScreenState extends State<AuthScreen> {
     _email.dispose();
     _pw.dispose();
     _name.dispose();
+    _workplace.dispose();
+    _tenure.dispose();
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  bool _validAccount() {
     final email = _email.text.trim();
-    final pw = _pw.text;
     if (email.isEmpty || !email.contains('@')) {
       setState(() => error = 'au_err_email');
-      return;
+      return false;
     }
-    if (pw.length < 6) {
+    if (_pw.text.length < 6) {
       setState(() => error = 'au_err_pw');
-      return;
+      return false;
     }
+    return true;
+  }
+
+  void _goStep2() {
+    if (!_validAccount()) return;
+    setState(() {
+      error = null;
+      signupStep = 2;
+    });
+  }
+
+  Future<void> _submit() async {
+    if (!signupMode && !_validAccount()) return;
     setState(() {
       loading = true;
       error = null;
       notice = null;
     });
     final err = signupMode
-        ? await supabase.signUp(email, pw,
-            name: _name.text.trim(), nationality: _nationality)
-        : await supabase.signIn(email, pw);
+        ? await supabase.signUp(_email.text, _pw.text,
+            name: _name.text.trim(),
+            nationality: _nationality,
+            workplace: _workplace.text.trim(),
+            tenure: _tenure.text.trim())
+        : await supabase.signIn(_email.text, _pw.text);
     if (!mounted) return;
     setState(() => loading = false);
     if (err != null) {
-      setState(() => error = err);
+      setState(() {
+        error = err;
+        if (signupMode) signupStep = 1; // 오류 시 계정 단계로
+      });
       return;
     }
     if (signupMode && !supabase.isLoggedIn) {
       setState(() {
         notice = 'au_notice';
         signupMode = false;
+        signupStep = 1;
       });
     }
   }
 
-  /// 오류 문자열이 i18n 키면 번역, 아니면(Supabase 원문 메시지) 그대로.
   String _msg(String lang, String s) => kI18n['ko']!.containsKey(s) ? tr(lang, s) : s;
 
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
     final lang = app.lang;
+    final worksite = signupMode && signupStep == 2;
     return Scaffold(
       backgroundColor: AppColors.paper,
       body: SafeArea(
@@ -95,13 +119,11 @@ class _AuthScreenState extends State<AuthScreen> {
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                       color: AppColors.yellow, borderRadius: BorderRadius.circular(11)),
-                  child: const CitrusMark(size: 32),
+                  child: SvgPicture.string(kBrandLogoSvg, width: 32, height: 32),
                 ),
                 const SizedBox(width: 10),
-                const Text('제이',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                const Text('제이', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                 const Spacer(),
-                // 언어 전환 (로그인 전에도 모국어로)
                 GestureDetector(
                   onTap: () => context.read<AppState>().cycleLang(),
                   child: Container(
@@ -117,20 +139,44 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
               ]),
               const SizedBox(height: 22),
-              Text(tr(lang, signupMode ? 'au_signup' : 'au_login'),
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+              if (signupMode)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text('$signupStep / 2',
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.sea)),
+                ),
+              Text(
+                worksite ? tr(lang, 'ws_title') : tr(lang, signupMode ? 'au_signup' : 'au_login'),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+              ),
               const SizedBox(height: 8),
               Text(
-                tr(lang, signupMode ? 'au_signup_sub' : 'au_login_sub'),
+                worksite
+                    ? tr(lang, 'ws_sub')
+                    : tr(lang, signupMode ? 'au_signup_sub' : 'au_login_sub'),
                 style: const TextStyle(fontSize: 13, color: AppColors.inkSoft, height: 1.5),
               ),
               const SizedBox(height: 20),
-              _field(tr(lang, 'au_email'), _email,
-                  hint: tr(lang, 'au_email_hint'), keyboard: TextInputType.emailAddress),
-              _field(tr(lang, 'au_pw'), _pw, hint: tr(lang, 'au_pw_hint'), obscure: true),
-              if (signupMode) ...[
-                _field(tr(lang, 'au_name'), _name, hint: tr(lang, 'au_name_hint')),
-                _natField(lang),
+              if (worksite) ...[
+                _field(tr(lang, 'ws_name'), _workplace, hint: tr(lang, 'ws_name_hint')),
+                _field(tr(lang, 'ws_tenure'), _tenure, hint: tr(lang, 'ws_tenure_hint')),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(11),
+                  decoration: BoxDecoration(
+                      color: AppColors.yellow, borderRadius: BorderRadius.circular(11)),
+                  child: Text(tr(lang, 'ws_note'),
+                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF5A4A2A), height: 1.5)),
+                ),
+              ] else ...[
+                _field(tr(lang, 'au_email'), _email,
+                    hint: tr(lang, 'au_email_hint'), keyboard: TextInputType.emailAddress),
+                _field(tr(lang, 'au_pw'), _pw, hint: tr(lang, 'au_pw_hint'), obscure: true),
+                if (signupMode) ...[
+                  _field(tr(lang, 'au_name'), _name, hint: tr(lang, 'au_name_hint')),
+                  _natField(lang),
+                ],
               ],
               if (error != null) ...[
                 const SizedBox(height: 12),
@@ -148,19 +194,31 @@ class _AuthScreenState extends State<AuthScreen> {
                         child: CircularProgressIndicator(color: AppColors.sea),
                       ),
                     )
-                  : BigButton(tr(lang, signupMode ? 'au_signup_btn' : 'au_login_btn'), _submit),
+                  : BigButton(
+                      worksite
+                          ? tr(lang, 'au_signup_btn')
+                          : tr(lang, signupMode ? 'au_next' : 'au_login_btn'),
+                      worksite ? _submit : (signupMode ? _goStep2 : _submit),
+                    ),
               const SizedBox(height: 10),
               Center(
                 child: TextButton(
                   onPressed: loading
                       ? null
                       : () => setState(() {
-                            signupMode = !signupMode;
+                            if (worksite) {
+                              signupStep = 1;
+                            } else {
+                              signupMode = !signupMode;
+                              signupStep = 1;
+                            }
                             error = null;
                             notice = null;
                           }),
                   child: Text(
-                    tr(lang, signupMode ? 'au_to_login' : 'au_to_signup'),
+                    worksite
+                        ? tr(lang, 'au_back')
+                        : tr(lang, signupMode ? 'au_to_login' : 'au_to_signup'),
                     style: const TextStyle(
                         color: AppColors.seaDeep, fontSize: 13, fontWeight: FontWeight.w700),
                   ),
@@ -181,7 +239,6 @@ class _AuthScreenState extends State<AuthScreen> {
             style: TextStyle(fontSize: 12, color: fg, height: 1.4, fontWeight: FontWeight.w600)),
       );
 
-  // 국적: 자유입력 대신 고정 목록에서 선택 (목록이 길면 스크롤).
   Widget _natField(String lang) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

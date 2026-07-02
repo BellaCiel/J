@@ -85,11 +85,18 @@ class _ProfileHero extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _pill(tr(app.lang, 'p_name'), 'Bibek'),
+                    _pill(tr(app.lang, 'p_name'),
+                        (app.name != null && app.name!.isNotEmpty) ? app.name! : 'Bibek'),
                     const SizedBox(height: 8),
-                    _pill(tr(app.lang, 'p_site'), tr(app.lang, 'p_site_v')),
+                    _pill(tr(app.lang, 'p_site'),
+                        (app.workplace != null && app.workplace!.isNotEmpty)
+                            ? app.workplace!
+                            : tr(app.lang, 'p_site_v')),
                     const SizedBox(height: 8),
-                    _pill(tr(app.lang, 'p_tenure'), tr(app.lang, 'p_tenure_v')),
+                    _pill(tr(app.lang, 'p_tenure'),
+                        (app.tenure != null && app.tenure!.isNotEmpty)
+                            ? app.tenure!
+                            : tr(app.lang, 'p_tenure_v')),
                     const SizedBox(height: 8),
                     GestureDetector(
                       onTap: () => showShopSheet(context),
@@ -145,8 +152,9 @@ class _AttendCard extends StatelessWidget {
   const _AttendCard({required this.app});
   @override
   Widget build(BuildContext context) {
-    final days = tr(app.lang, 'dow_mon').split(',');
-    final doneCount = app.attended ? 3 : 2; // 월화(+오늘)
+    // 최근 7일 (맨 오른쪽이 오늘). 라벨은 요일이 아니라 날짜(일).
+    final now = DateTime.now();
+    final dates = List.generate(7, (i) => now.subtract(Duration(days: 6 - i)));
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
@@ -185,8 +193,8 @@ class _AttendCard extends StatelessWidget {
         const SizedBox(height: 12),
         Row(
           children: List.generate(7, (i) {
-            final done = i < doneCount;
-            final today = i == 2;
+            final today = i == 6; // 맨 오른쪽이 오늘
+            final done = today ? app.attended : true; // 과거는 출석 표시, 오늘은 실제 상태
             return Expanded(
               child: Column(children: [
                 Container(
@@ -203,7 +211,11 @@ class _AttendCard extends StatelessWidget {
                       style: TextStyle(fontSize: done ? 15 : 15, color: const Color(0xFFC9BDA0))),
                 ),
                 const SizedBox(height: 3),
-                Text(days[i], style: const TextStyle(fontSize: 10, color: AppColors.inkSoft)),
+                Text('${dates[i].day}',
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: today ? FontWeight.w800 : FontWeight.w500,
+                        color: today ? AppColors.seaDeep : AppColors.inkSoft)),
               ]),
             );
           }),

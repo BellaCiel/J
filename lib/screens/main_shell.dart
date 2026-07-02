@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../theme.dart';
 import '../state/app_state.dart';
 import '../state/i18n.dart';
 import '../services/supabase_service.dart';
+import '../data/brand_svgs.dart';
 import '../widgets/citrus_mark.dart';
 import 'home_tab.dart';
 import 'record_tab.dart';
@@ -68,7 +70,7 @@ class _MainShellState extends State<MainShell> {
                       width: 24, height: 24, padding: const EdgeInsets.all(2),
                       decoration: BoxDecoration(
                           color: AppColors.yellow, borderRadius: BorderRadius.circular(7)),
-                      child: const CitrusMark(size: 20),
+                      child: SvgPicture.string(kBrandLogoSvg, width: 20, height: 20),
                     ),
                     const SizedBox(width: 7),
                     Expanded(
@@ -170,7 +172,6 @@ class _TabBar extends StatelessWidget {
   const _TabBar({required this.idx, required this.onTap, required this.lang});
 
   static const _keys = ['tab_home', 'tab_record', 'tab_work', 'tab_comm', 'tab_sos'];
-  static const _icons = ['🍊', '📋', '🏢', '💬', '🆘'];
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +200,7 @@ class _TabBar extends StatelessWidget {
                     children: [
                       Opacity(
                         opacity: active ? 1 : .5,
-                        child: Text(_icons[i], style: const TextStyle(fontSize: 24)),
+                        child: SvgPicture.string(kTabSvgs[i], width: 26, height: 26),
                       ),
                       const SizedBox(height: 3),
                       Text(tr(lang, _keys[i]),

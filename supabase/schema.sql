@@ -22,6 +22,7 @@ create table if not exists public.profiles (
   prop_kind     text not null default 'none',
   invite_code   text,
   invited_by    uuid references auth.users(id),
+  tenure        text,
   created_at    timestamptz not null default now()
 );
 -- 아바타 컬럼 (기존 DB 대상 멱등 마이그레이션)
@@ -32,6 +33,7 @@ alter table public.profiles add column if not exists prop_kind  text not null de
 -- 친구초대 컬럼
 alter table public.profiles add column if not exists invite_code text;
 alter table public.profiles add column if not exists invited_by  uuid references auth.users(id);
+alter table public.profiles add column if not exists tenure text;
 -- 기존 프로필에 초대 코드 backfill (id 기반 6자리, 결정적)
 update public.profiles set invite_code = upper(substr(md5(id::text), 1, 6)) where invite_code is null;
 create unique index if not exists profiles_invite_code_key on public.profiles(invite_code);
@@ -47,8 +49,9 @@ create policy "profiles self update" on public.profiles for update to authentica
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  insert into public.profiles (id, name, nationality, invite_code)
+  insert into public.profiles (id, name, nationality, workplace, tenure, invite_code)
   values (new.id, new.raw_user_meta_data->>'name', new.raw_user_meta_data->>'nationality',
+          new.raw_user_meta_data->>'workplace', new.raw_user_meta_data->>'tenure',
           upper(substr(md5(new.id::text), 1, 6)))
   on conflict (id) do nothing;
   return new;

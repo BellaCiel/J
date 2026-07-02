@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'theme.dart';
 import 'state/app_state.dart';
 import 'services/supabase_service.dart';
 import 'screens/auth.dart';
+import 'screens/tutorial.dart';
 import 'screens/main_shell.dart';
 
 Future<void> main() async {
@@ -27,18 +29,58 @@ class JejuPayApp extends StatelessWidget {
   }
 }
 
-/// 로그인 세션이 있을 때만 메인을 보여준다. 없으면 로그인/회원가입 화면.
-class AuthGate extends StatelessWidget {
+/// 첫 실행: 튜토리얼(건너뛰기 없음) → 로그인 → 메인.
+/// 로그인 세션이 있으면 바로 메인. 튜토리얼은 1회만(shared_preferences).
+class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
   @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  static const _prefKey = 'tutorial_seen_v1';
+  bool? _tutorialSeen; // null = 로딩 중
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (mounted) setState(() => _tutorialSeen = prefs.getBool(_prefKey) ?? false);
+    } catch (_) {
+      if (mounted) setState(() => _tutorialSeen = false);
+    }
+  }
+
+  Future<void> _finishTutorial() async {
+    setState(() => _tutorialSeen = true);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_prefKey, true);
+    } catch (_) {}
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (!supabase.ready) return const AuthScreen(); // 초기화 실패 시에도 인증부터
+    if (_tutorialSeen == null) {
+      return const Scaffold(
+        backgroundColor: AppColors.paper,
+        body: Center(child: CircularProgressIndicator(color: AppColors.sea)),
+      );
+    }
     return StreamBuilder(
-      stream: supabase.onAuthChange,
+      stream: supabase.ready ? supabase.onAuthChange : const Stream.empty(),
       builder: (context, _) {
         if (supabase.isLoggedIn) return const MainShell();
-        // 로그아웃 상태면 로드 플래그 초기화
+        // 로그아웃/미로그인
         context.read<AppState>().resetForLogout();
+        if (_tutorialSeen == false) {
+          return TutorialScreen(onDone: _finishTutorial);
+        }
         return const AuthScreen();
       },
     );
