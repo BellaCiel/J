@@ -1,11 +1,11 @@
 {
-    "name": "jeju_pay",
-    "short_name": "jeju_pay",
+    "name": "제이 (Jeju Migrant Workers)",
+    "short_name": "제이",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F5EFE0",
+    "theme_color": "#3F7D4F",
+    "description": "제이 — 제주 이주노동자 임금체불 대응·근무기록 앱",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
