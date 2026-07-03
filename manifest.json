@@ -1,0 +1,40 @@
+{
+    "name": "제이 (Jeju Migrant Workers)",
+    "short_name": "제이",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#F5EFE0",
+    "theme_color": "#3F7D4F",
+    "description": "제이 — 제주 이주노동자 임금체불 대응·근무기록 앱",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

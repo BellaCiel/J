@@ -1,0 +1,23 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" rx="210" fill="#FDF3E0"/>
+  <!-- 현무암 j -->
+  <path d="M 545 330 C 545 305, 585 300, 630 300 C 700 300, 770 305, 770 335 C 772 430, 768 560, 762 690 C 756 810, 700 918, 545 940 C 400 960, 235 940, 150 855 C 95 800, 110 700, 155 645 C 195 598, 265 585, 300 610 C 330 632, 322 690, 322 730 C 322 772, 355 800, 405 800 C 470 800, 512 762, 522 700 C 535 560, 540 440, 545 330 Z" fill="#4d4d4d" stroke="#333333" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
+  <g fill="#a8a8a8">
+    <ellipse cx="585" cy="360" rx="9" ry="13"/><ellipse cx="620" cy="398" rx="6" ry="9"/>
+    <ellipse cx="600" cy="430" rx="5" ry="7"/><ellipse cx="640" cy="375" rx="4" ry="6"/>
+    <ellipse cx="240" cy="645" rx="10" ry="14"/><ellipse cx="275" cy="665" rx="6" ry="9"/>
+    <ellipse cx="248" cy="695" rx="6" ry="8"/><ellipse cx="288" cy="660" rx="5" ry="7"/>
+    <ellipse cx="700" cy="700" rx="10" ry="15"/><ellipse cx="720" cy="745" rx="12" ry="16"/>
+    <ellipse cx="705" cy="790" rx="13" ry="17"/><ellipse cx="640" cy="830" rx="11" ry="14"/>
+    <ellipse cx="555" cy="870" rx="10" ry="13"/><ellipse cx="505" cy="880" rx="8" ry="11"/>
+    <ellipse cx="560" cy="900" rx="9" ry="12"/>
+  </g>
+  <!-- 감귤 -->
+  <g transform="translate(0 -55)">
+    <g transform="rotate(-3 650 190)">
+      <path d="M 500 195 C 500 130, 570 95, 655 95 C 745 95, 805 135, 802 195 C 800 258, 740 300, 650 302 C 560 304, 500 260, 500 195 Z" fill="#F5A623" stroke="#CE7A0E" stroke-width="13" stroke-linejoin="round"/>
+      <g fill="#CE7A0E"><circle cx="765" cy="222" r="5.5"/><circle cx="728" cy="238" r="6"/><circle cx="710" cy="258" r="5"/><circle cx="728" cy="264" r="5.5"/></g>
+    </g>
+    <path d="M 566 104 L 588 70 L 612 92 L 632 64 L 656 88 L 682 70 L 700 96 L 690 118 L 656 126 L 620 122 L 588 126 Z" fill="#1b7a3e" stroke="#0f5132" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
+</svg>
